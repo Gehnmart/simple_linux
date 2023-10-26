@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 int is_argument(char* arg);
 int type_of_arg(char* arg);
 FILE* get_file(char* arg);
-void none_argument(FILE* file);
+void none_argument();
+void file_argument(FILE* file);
 void b_argument(FILE* file);
 void e_argument(FILE* file);
 void n_argument(FILE* file);
@@ -14,38 +14,52 @@ void t_argument(FILE* file);
 
 int main(int argc, char** argv) {
     int arg_type = 0;
+
+    if(argc == 1){
+        none_argument();
+    }
+
     for(int i = 1; i < argc; i++){
         if(is_argument(argv[i])){
             arg_type = type_of_arg(argv[i]);
+            continue;
+        } else if(i == 1){
+            arg_type = 1;
+        }
+        if(arg_type == -1){
+            printf("cat: illegal option -- %c\n", argv[i-1][1]);
+            return 1;
         }
 
         FILE* file = get_file(argv[i]);
 
         if(file != NULL) {
-            fprintf(file, "\t");
             switch(arg_type){
                 case 0:
-                    none_argument(file);
+                    none_argument();
                     break;
                 case 1:
-                    b_argument(file);
+                    file_argument(file);
                     break;
                 case 2:
-                    e_argument(file);
+                    b_argument(file);
                     break;
                 case 3:
-                    n_argument(file);
+                    e_argument(file);
                     break;
                 case 4:
-                    s_argument(file);
+                    n_argument(file);
                     break;
                 case 5:
+                    s_argument(file);
+                    break;
+                case 6:
                     t_argument(file);
                     break;
-                default:
-                    printf("Error");
             }
 
+        } else {
+            printf("cat: %s: No such file or directory!", argv[i]);
         }
     }
 }
@@ -55,19 +69,22 @@ int is_argument(char* arg) {
 }
 
 int type_of_arg(char* arg) {
+    if(strlen(arg) > 2){
+        return 0;
+    }
     switch(arg[1]){
         case 'b':
-            return 1;
-        case 'e':
             return 2;
-        case 'n':
+        case 'e':
             return 3;
-        case 's':
+        case 'n':
             return 4;
-        case 't':
+        case 's':
             return 5;
+        case 't':
+            return 6;
         default:
-            return 0;
+            return -1;
     }
 }
 
@@ -80,13 +97,15 @@ FILE* get_file(char* arg) {
     }
 }
 
-void none_argument(FILE* file){
-    char c = fgetc(file);
-
-    for(; c != EOF; c = fgetc(file)){
-        printf("%c", c);
+void none_argument(){
+    char buff[4096];
+    while(1){
+        scanf("%s", buff);
+        printf("%s\n", buff);
     }
 }
+
+void file_argument(FILE* file) {for(char c = fgetc(file); c != EOF; c = fgetc(file)) printf("%c", c);}
 
 void b_argument(FILE* file){
     char buff[256] = {0};
@@ -119,7 +138,7 @@ void n_argument(FILE* file){
     char buff[256] = {0};
 
     for(int i = 0; fgets(buff, 256, file); i++)
-        printf("     %d  %s", i+1, buff);
+        printf("%6d  %s", i+1, buff);
 }
 
 void s_argument(FILE* file){
@@ -141,6 +160,6 @@ void t_argument(FILE* file){
     char c = fgetc(file);
 
     for(; c != EOF; c = fgetc(file)){
-        printf("%s", c != '\t' ? (char[2]) { (char) c, '\0'} : "^|");
+        printf("%s", c != '\t' ? (char[2]) { (char) c, '\0'} : "^I");
     }
 }
