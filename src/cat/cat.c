@@ -4,26 +4,31 @@
 
 int is_argument(char* arg);
 int type_of_arg(char* arg);
-int is_file_name(char* arg);
-void simple_out_from_file(char* arg);
-int end_string_from_file(char* arg);
-int numerick_from_file(char* arg);
+FILE* get_file(char* arg);
+void simple_out_from_file(FILE* file);
+int string_ending_from_file(FILE* file);
+int numbers_all_lines_from_file(FILE* file);
 
 int main(int argc, char** argv) {
     int arg_type = 0;
     for(int i = 1; i < argc; i++){
         if(is_argument(argv[i])){
             arg_type = type_of_arg(argv[i]);
-        } else if(is_file_name(argv[i])) {
+        }
+        FILE* file = get_file(argv[i]);
+
+        if(file != NULL) {
             switch(arg_type){
                 case 0:
-                    simple_out_from_file(argv[i]);
+                    simple_out_from_file(file);
                     break;
+                case 1:
+                    
                 case 2:
-                    end_string_from_file(argv[i]);
+                    string_ending_from_file(file);
                     break;
                 case 3:
-                    numerick_from_file(argv[i]);
+                    numbers_all_lines_from_file(file);
                     break;
                 default:
                     printf("Error");
@@ -54,53 +59,55 @@ int type_of_arg(char* arg) {
     }
 }
 
-int is_file_name(char* arg) {
+FILE* get_file(char* arg) {
     FILE* file = fopen(arg, "r");
-    if(file = NULL) {
-        fclose(file);
-        return 0;
+    if(file == NULL) {
+        return NULL;
     } else {
-        fclose(file);
-        return 1;
+        return file;
     }
 }
 
-void simple_out_from_file(char* arg){
-    FILE* file = fopen(arg, "r");
+void simple_out_from_file(FILE* file){
     char c = fgetc(file);
+
     for(; c != EOF; c = fgetc(file)){
         printf("%c", c);
     }
 }
 
-int end_string_from_file(char* arg){
-    FILE* file = fopen(arg, "r");
+int numbers_non_void_lines_from_file(FILE* file){
     char buff[256] = {0};
-    char c = '0';
 
-    for(int i = 1; fgets(buff, 256, file); i++) {
-        for(int j = 0; j < strlen(buff); j++) {
-            if(buff[j] == '\n') printf("$");
+    for(int i = 0; fgets(buff, 256, file); i++) {
+        printf("     %d  ", i+1);
+        for(int j = 0; j < (int)strlen(buff); j++) {
             printf("%c", buff[j]);
-            if(c == EOF || c == '\0'){
-                return 1;
-            }
         }
     }
+    return 0;
 }
 
-int numerick_from_file(char* arg){
-    FILE* file = fopen(arg, "r");
+int string_ending_from_file(FILE* file){
     char buff[256] = {0};
-    char c = '0';
 
     for(int i = 1; fgets(buff, 256, file); i++) {
-        printf("     %d  ", i);
-        for(int j = 0; j < strlen(buff); j++) {
+        for(int j = 0; j < (int)strlen(buff); j++) {
+            if(buff[j] == '\n') printf("$");
             printf("%c", buff[j]);
-            if(c == EOF || c == '\0'){
-                return 1;
-            }
         }
     }
+    return 0;
+}
+
+int numbers_all_lines_from_file(FILE* file){
+    char buff[256] = {0};
+
+    for(int i = 0; fgets(buff, 256, file); i++) {
+        printf("     %d  ", i+1);
+        for(int j = 0; j < (int)strlen(buff); j++) {
+            printf("%c", buff[j]);
+        }
+    }
+    return 0;
 }
