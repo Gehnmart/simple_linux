@@ -108,18 +108,26 @@ void none_argument(){
 void file_argument(FILE* file) {for(char c = fgetc(file); c != EOF; c = fgetc(file)) printf("%c", c);}
 
 void b_argument(FILE* file){
-    char buff[256] = {0};
+    
     int flag = 0;
-    for(int i = 0; fgets(buff, 256, file);){
+    int i = 1;
+
+    for(char c = fgetc(file); c != EOF; c = fgetc(file)){
         flag = 0;
-        for(int j = 0; j < (int)strlen(buff); j++) {
-            if(buff[j] > 31 && buff[j] < 127){
-                flag = 1;
-                break;
+        if((c > 31 && c < 127) || c == 9){
+            flag = 1;
+        }
+        if(flag){
+            printf("%6d\t", i++);
+            while(1){
+                if((c > 31 && c < 127) || c == 9) putchar(c);
+                else {
+                    break;
+                }
+                c = fgetc(file);
             }
         }
-        if(flag) printf("     %d  %s", ++i, buff);
-        else putchar('\n');
+        if(flag == 0)putchar('\n');
     }
 }
 
@@ -135,10 +143,10 @@ void e_argument(FILE* file){
 }
 
 void n_argument(FILE* file){
-    char buff[256] = {0};
+    char buff[4096] = {0};
 
-    for(int i = 0; fgets(buff, 256, file); i++)
-        printf("%6d  %s", i+1, buff);
+    for(int i = 0; fgets(buff, 4096, file); i++)
+        printf("%6d\t%s", i+1, buff);
 }
 
 void s_argument(FILE* file){
@@ -146,7 +154,7 @@ void s_argument(FILE* file){
     int count = 0;
     while(fgets(buff, 256, file)){
         for(int j = 0; j < (int)strlen(buff); j++, count++) {
-            if(buff[j] > 31 && buff[j] < 127){
+            if((buff[j] > 31 && buff[j] < 127) || buff[j] == 9){
                 count = 0;
                 break;
             }
