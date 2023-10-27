@@ -14,9 +14,12 @@ static struct option longopts[] = {
              { "squeeze-blank",        no_argument,            NULL,           's' }
      };
 
-char* cat_cooking(char* argv);
+void cat_cook(FILE* file);
 void usage();
-void scan_files(int argc, char** argv, bool is_cooked);
+void scan_files(char** argv, bool cooked);
+bool is_printable(int ch);
+bool is_ascii(int ch);
+bool is_cntrl(int ch);
 
 bool b_flag = False;
 bool e_flag = False;
@@ -24,6 +27,8 @@ bool n_flag = False;
 bool s_flag = False;
 bool t_flag = False;
 bool v_flag = False;
+
+char* filename[FILENAME_MAX];
 
 int main(int argc, char** argv) {
 
@@ -35,6 +40,7 @@ int main(int argc, char** argv) {
         switch(res) {
             case 'b':
                 b_flag = True;
+                n_flag = True;
                 break;
             case 'e':
                 e_flag = True;
@@ -66,14 +72,15 @@ int main(int argc, char** argv) {
                 error = 1;
                 break;
         }
+    argv += optind;
     
     if(error){
         usage();
     }
     if(b_flag || e_flag || n_flag || s_flag || t_flag || v_flag){
-        scan_files(argc, argv, False);
+        scan_files(argv, True);
     }else{
-        scan_files(argc, argv, True);
+        scan_files(argv, False);
     }
 
 }
@@ -84,36 +91,95 @@ void usage()
 	exit(1);
 }
 
-void scan_files(int argc, char** argv, bool is_cooked){
+void scan_files(char** argv, bool cooked){
     
     char* path;
     FILE* file;
-    int i = 1;
+    int i = 0;
 
-    while((path = argv[i]) != NULL){
-        
-    }
-    if(is_cooked){
-        for(int i = 1; i < argc; i++){
-            FILE* file = fopen(argv[i], "r");
-            if(file == NULL){
-                printf("cat: %s: No such file or directory\n", argv[i]);
-                continue;
-            }else{
-                char ch;
-                while((ch = fgetc(file))!=EOF)
-                    putchar(ch);
+    for(; (path = argv[i]) != NULL || i == 0; i++){
+        if(path == NULL){
+            while(True){
+                char buf[4096];
+                scanf("%s", buf);
+                printf("%s\n", buf);
+            }
+        }else{
+            if(!cooked){
+                file = fopen(path, "r");
+                if(file == NULL){
+                    printf("cat: %s: No such file or directory\n", path);
+                }else{
+                    char ch;
+                    while((ch = getc(file)) != EOF){
+                        putchar(ch);
+                    }
+                }
+            } else {
+                file = fopen(path, "r");
+                cat_cook(file);
             }
         }
-    }else{
-
     }
 }
 
-char* cat_cooking(char* argv){
-    return argv;
+void cat_cook(FILE* file){
+    char ch, prev;
+    int line = 0;
+    bool gooble = False;
+
+    for(prev = '\n'; (ch = fgetc(file)) != EOF; prev = ch){
+        if(prev == '\n'){
+            if(s_flag){
+                if(ch == '\n'){
+                    if(gooble)
+                        continue;
+                    gooble = 1;
+                } else {
+                    gooble = 0;
+                }
+            }
+            if(n_flag && (!b_flag || ch != '\n'))
+                printf("%6d\t", ++line);
+        }
+        if(ch == '\n'){
+            if(e_flag && putchar('$') == EOF)
+                break;
+        }
+        else if(ch == '\t'){
+            if(t_flag){
+                if(printf("^I") == EOF)
+                    break;
+                continue;
+            }
+        }
+        else if(v_flag){
+            if (!is_ascii(ch) && !is_printable(ch)) {
+				if (putchar('M') == EOF || putchar('-') == EOF)
+					break;
+				ch = (char)(ch);
+			}
+            if (is_cntrl(ch)) {
+				if (putchar('^') == EOF ||
+				    putchar(ch == '\177' ? '?' :
+				    ch | 0100) == EOF)
+					break;
+				continue;
+			}
+        }
+        if (putchar(ch) == EOF)
+			break;
+    }
 }
 
-bool is_printable(char ch){
-    return ((ch >= ' ') && (ch <= '~')) ? True : False;
+bool is_printable(int ch){
+    return ((ch >= ' ') && (ch <= '~'));
+}
+
+bool is_ascii(int ch){
+    return ((ch >= 0) && (ch <= 127));
+}
+
+bool is_cntrl(int ch){
+    return (ch == 127 || (ch >= 0 && ch <= 31));
 }
