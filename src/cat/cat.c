@@ -1,173 +1,119 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 
-int is_argument(char* arg);
-int type_of_arg(char* arg);
-FILE* get_file(char* arg);
-void none_argument();
-void file_argument(FILE* file);
-void b_argument(FILE* file);
-void e_argument(FILE* file);
-void n_argument(FILE* file);
-void s_argument(FILE* file);
-void t_argument(FILE* file);
+#define True 1
+#define False 0
+
+typedef char bool;
+
+static struct option longopts[] = {
+             { "number-nonblank",      no_argument,            NULL,           'b' },
+             { "number",               no_argument,            NULL,           'n' },
+             { "squeeze-blank",        no_argument,            NULL,           's' }
+     };
+
+char* cat_cooking(char* argv);
+void usage();
+void scan_files(int argc, char** argv, bool is_cooked);
+
+bool b_flag = False;
+bool e_flag = False;
+bool n_flag = False;
+bool s_flag = False;
+bool t_flag = False;
+bool v_flag = False;
 
 int main(int argc, char** argv) {
-    int arg_type = 0;
 
-    if(argc == 1){
-        none_argument();
-    }
+    int res;
+    int error = 0;
+	int idx = 0;
 
-    for(int i = 1; i < argc; i++){
-        if(is_argument(argv[i])){
-            arg_type = type_of_arg(argv[i]);
-            continue;
-        } else if(i == 1){
-            arg_type = 1;
+    while((res = getopt_long(argc, argv, "beEnstTv", longopts, &idx)) != -1)
+        switch(res) {
+            case 'b':
+                b_flag = True;
+                break;
+            case 'e':
+                e_flag = True;
+                v_flag = True;
+                break;
+            case 'E':
+                e_flag = True;
+                break;
+            case 'n':
+                n_flag = True;
+                break;
+            case 's':
+                s_flag = True;
+                break;
+            case 't':
+                t_flag = True;
+                v_flag = True;
+                break;
+            case 'T':
+                t_flag = True;
+                break;
+            case 'v':
+                v_flag = True;
+                break;
+            case '?':
+                error = 1;
+                break;
+            default:
+                error = 1;
+                break;
         }
-        if(arg_type == -1){
-            printf("cat: illegal option -- %c\n", argv[i-1][1]);
-            return 1;
-        }
-
-        FILE* file = get_file(argv[i]);
-
-        if(file != NULL) {
-            switch(arg_type){
-                case 0:
-                    none_argument();
-                    break;
-                case 1:
-                    file_argument(file);
-                    break;
-                case 2:
-                    b_argument(file);
-                    break;
-                case 3:
-                    e_argument(file);
-                    break;
-                case 4:
-                    n_argument(file);
-                    break;
-                case 5:
-                    s_argument(file);
-                    break;
-                case 6:
-                    t_argument(file);
-                    break;
-            }
-
-        } else {
-            printf("cat: %s: No such file or directory!", argv[i]);
-        }
-    }
-}
-
-int is_argument(char* arg) {
-    return arg[0] == '-'? 1 : 0;
-}
-
-int type_of_arg(char* arg) {
-    if(strlen(arg) > 2){
-        return 0;
-    }
-    switch(arg[1]){
-        case 'b':
-            return 2;
-        case 'e':
-            return 3;
-        case 'n':
-            return 4;
-        case 's':
-            return 5;
-        case 't':
-            return 6;
-        default:
-            return -1;
-    }
-}
-
-FILE* get_file(char* arg) {
-    FILE* file = fopen(arg, "r");
-    if(file == NULL) {
-        return NULL;
-    } else {
-        return file;
-    }
-}
-
-void none_argument(){
-    char buff[4096];
-    while(1){
-        scanf("%s", buff);
-        printf("%s\n", buff);
-    }
-}
-
-void file_argument(FILE* file) {for(char c = fgetc(file); c != EOF; c = fgetc(file)) printf("%c", c);}
-
-void b_argument(FILE* file){
     
-    int flag = 0;
+    if(error){
+        usage();
+    }
+    if(b_flag || e_flag || n_flag || s_flag || t_flag || v_flag){
+        scan_files(argc, argv, False);
+    }else{
+        scan_files(argc, argv, True);
+    }
+
+}
+
+void usage()
+{
+	printf("usage: cat [-benstuv] [file ...]\n");
+	exit(1);
+}
+
+void scan_files(int argc, char** argv, bool is_cooked){
+    
+    char* path;
+    FILE* file;
     int i = 1;
 
-    for(char c = fgetc(file); c != EOF; c = fgetc(file)){
-        flag = 0;
-        if((c > 31 && c < 127) || c == 9){
-            flag = 1;
-        }
-        if(flag){
-            printf("%6d\t", i++);
-            while(1){
-                if((c > 31 && c < 127) || c == 9) putchar(c);
-                else {
-                    break;
-                }
-                c = fgetc(file);
+    while((path = argv[i]) != NULL){
+        
+    }
+    if(is_cooked){
+        for(int i = 1; i < argc; i++){
+            FILE* file = fopen(argv[i], "r");
+            if(file == NULL){
+                printf("cat: %s: No such file or directory\n", argv[i]);
+                continue;
+            }else{
+                char ch;
+                while((ch = fgetc(file))!=EOF)
+                    putchar(ch);
             }
         }
-        if(flag == 0)putchar('\n');
+    }else{
+
     }
 }
 
-void e_argument(FILE* file){
-    char buff[256] = {0};
-
-    while(fgets(buff, 256, file)) {
-        for(int j = 0; j < (int)strlen(buff); j++) {
-            if(buff[j] == '\n') putchar('$');
-            putchar(buff[j]);
-        }
-    }
+char* cat_cooking(char* argv){
+    return argv;
 }
 
-void n_argument(FILE* file){
-    char buff[4096] = {0};
-
-    for(int i = 0; fgets(buff, 4096, file); i++)
-        printf("%6d\t%s", i+1, buff);
-}
-
-void s_argument(FILE* file){
-    char buff[256] = {0};
-    int count = 0;
-    while(fgets(buff, 256, file)){
-        for(int j = 0; j < (int)strlen(buff); j++, count++) {
-            if((buff[j] > 31 && buff[j] < 127) || buff[j] == 9){
-                count = 0;
-                break;
-            }
-        }
-        if(count == 0) printf("%s", buff);
-        else if(count == 1) putchar('\n');
-    }
-}
-
-void t_argument(FILE* file){
-    char c = fgetc(file);
-
-    for(; c != EOF; c = fgetc(file)){
-        printf("%s", c != '\t' ? (char[2]) { (char) c, '\0'} : "^I");
-    }
+bool is_printable(char ch){
+    return ((ch >= ' ') && (ch <= '~')) ? True : False;
 }
