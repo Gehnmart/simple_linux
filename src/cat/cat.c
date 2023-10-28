@@ -3,6 +3,8 @@
 #include <string.h>
 #include <getopt.h>
 
+#include <ctype.h>
+
 #define True 1
 #define False 0
 
@@ -12,10 +14,9 @@ static struct option longopts[] = {
              { "number-nonblank",      no_argument,            NULL,           'b' },
              { "number",               no_argument,            NULL,           'n' },
              { "squeeze-blank",        no_argument,            NULL,           's' }
-     };
+};
 
 void cat_cook(FILE* file);
-void usage();
 void scan_files(char** argv, bool cooked);
 bool is_printable(int ch);
 bool is_ascii(int ch);
@@ -75,7 +76,8 @@ int main(int argc, char** argv) {
     argv += optind;
     
     if(error){
-        usage();
+        printf("usage: cat [-benstuv] [file ...]\n");
+        exit(1);
     }
     if(b_flag || e_flag || n_flag || s_flag || t_flag || v_flag){
         scan_files(argv, True);
@@ -83,12 +85,6 @@ int main(int argc, char** argv) {
         scan_files(argv, False);
     }
 
-}
-
-void usage()
-{
-	printf("usage: cat [-benstuv] [file ...]\n");
-	exit(1);
 }
 
 void scan_files(char** argv, bool cooked){
@@ -124,7 +120,7 @@ void scan_files(char** argv, bool cooked){
 }
 
 void cat_cook(FILE* file){
-    char ch, prev;
+    int ch, prev;
     int line = 0;
     bool gooble = False;
 
@@ -157,12 +153,10 @@ void cat_cook(FILE* file){
             if (!is_ascii(ch) && !is_printable(ch)) {
 				if (putchar('M') == EOF || putchar('-') == EOF)
 					break;
-				ch = (char)(ch);
+                ch = toascii(ch);
 			}
             if (is_cntrl(ch)) {
-				if (putchar('^') == EOF ||
-				    putchar(ch == '\177' ? '?' :
-				    ch | 0100) == EOF)
+				if (putchar('^') == EOF || putchar(ch == 127 ? '?' : ch+64) == EOF)
 					break;
 				continue;
 			}
