@@ -10,18 +10,18 @@ typedef char bool;
 extern char* optarg;
 
 typedef struct {
-bool e_flag;
-bool i_flag;
-bool v_flag;
-bool c_flag;
-bool l_flag;
-bool n_flag;
-bool h_flag;
-bool s_flag;
-bool f_flag;
-bool o_flag;
+  bool e_flag;
+  bool i_flag;
+  bool v_flag;
+  bool c_flag;
+  bool l_flag;
+  bool n_flag;
+  bool h_flag;
+  bool s_flag;
+  bool f_flag;
+  bool o_flag;
 
-bool any_flag;
+  bool any_flag;
 } Tflags;
 
 typedef struct {
@@ -32,8 +32,8 @@ typedef struct {
 
 void regexp_import_from_file(char *path, Tpatterns* patterns);
 void parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv);
-void scan_files(char** argv, bool cooked, Tpatterns* pattern);
-void only_pattern(FILE* file, Tpatterns* patterns);
+void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* pattern);
+void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter);
 
 int main(int argc, char** argv) {
 
@@ -45,10 +45,11 @@ int main(int argc, char** argv) {
   argv+=optind;
 
   if (flags.any_flag) {
-    scan_files(argv, True, &patterns);
+    scan_files(&flags, argv, True, &patterns);
+  } else {
+    argv+=1;
+    scan_files(&flags, argv, False, &patterns);
   }
-
-
 
   for(int j = 0; j < patterns.pattern_count; j++){
     free(patterns.pattern[j]);
@@ -102,23 +103,62 @@ void parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
         exit(1);
     }
   }
+  if((!flags->f_flag && !flags->e_flag)){
+    argv += optind;
+    patterns->pattern[patterns->pattern_count] = malloc(sizeof(char) * 4098);
+    strcpy(patterns->pattern[patterns->pattern_count++], argv[0]);
+    argv+=1;
+    printf("%s", argv[0]);
+  }
 }
 
-void only_pattern(FILE* file, Tpatterns* patterns){
+void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter){
   char buf[4096];
+
+  bool str_in = False;
+  int str_in_counter = 0;
+
   while((fgets(buf, 4096, file)) != NULL){
     for(int j = 0; j < patterns->pattern_count; j++){
-      if(strstr(buf, patterns->pattern[j]) != NULL){
-        printf("%s", buf);
-        break;
+
+      if(flags->i_flag){
+        str_in = (strcasestr(buf, patterns->pattern[j]) != NULL);
+      } else {
+        str_in = (strstr(buf, patterns->pattern[j]) != NULL);
       }
+      if(flags->v_flag){
+        str_in = !str_in;
+      }
+
+      if(str_in){
+        if(flags->c_flag){
+          str_in_counter++;
+        }else{
+          if(file_counter>1){
+            printf("%s:%s\n", path, buf);
+          } else {
+            printf("%s\n", buf);
+          }
+        }
+      }
+    }
+  }
+  if(flags->c_flag){
+    if(file_counter>1){
+      printf("%s:%d\n", path, str_in_counter);
+    } else {
+      printf("%d\n", str_in_counter);
     }
   }
 }
 
-void scan_files(char** argv, bool cooked, Tpatterns* patterns) {
+void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* patterns) {
   char* path;
   FILE* file;
+
+  int file_counter = 0;
+
+  for (; (path = argv[file_counter]) != NULL; file_counter++);
 
   for (int i = 0; (path = argv[i]) != NULL || i == 0; i++) {
     if (path == NULL) {
@@ -132,10 +172,15 @@ void scan_files(char** argv, bool cooked, Tpatterns* patterns) {
           if (file == NULL) {
             printf("cat: %s: No such file or directory\n", path);
           } else {
-            only_pattern(file, patterns);
-        }
+            only_pattern(file, patterns, flags, path, file_counter);
+          }
       } else {
-        file = fopen(path, "r");
+          file = fopen(path, "r");
+          if (file == NULL) {
+            printf("cat: %s: No such file or directory\n", path);
+          } else {
+            only_pattern(file, patterns, flags, path, file_counter);
+          }
       }
     }
   }
@@ -153,6 +198,7 @@ void regexp_import_from_file(char *path, Tpatterns* patterns){
     } else {
       char buf[4096];
       for(int i = 0; (fgets(buf, 4096, file)) != NULL; i++){
+        if(buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
         patterns->pattern[patterns->pattern_count] = malloc(sizeof(char) * 4098);
         strcpy(patterns->pattern[patterns->pattern_count++], buf);
       }
