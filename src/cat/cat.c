@@ -1,7 +1,6 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define True 1
 #define False 0
@@ -14,7 +13,6 @@ static struct option longopts[] = {{"number-nonblank", no_argument, NULL, 'b'},
 
 void cat_cook(FILE* file);
 void scan_files(char** argv, bool cooked);
-void error_and_exit();
 
 bool b_flag = False;
 bool e_flag = False;
@@ -60,7 +58,8 @@ int main(int argc, char** argv) {
         v_flag = True;
         break;
       case '?':
-        error_and_exit();
+        printf("usage: cat [-benstuv] [file ...]\n");
+        exit(1);
         break;
       default:
         error = 1;
@@ -69,18 +68,16 @@ int main(int argc, char** argv) {
   argv += optind;
 
   if (error) {
-    error_and_exit();
+    printf("usage: cat [-benstuv] [file ...]\n");
+    exit(1);
   }
   if (b_flag || e_flag || n_flag || s_flag || t_flag || v_flag) {
     scan_files(argv, False);
   } else {
     scan_files(argv, True);
   }
-}
 
-void error_and_exit() {
-  printf("usage: cat [-benstuv] [file ...]\n");
-  exit(1);
+  return 0;
 }
 
 void scan_files(char** argv, bool cooked) {
@@ -146,4 +143,5 @@ void cat_cook(FILE* file) {
     }
     putchar(ch);
   }
+  fclose(file);
 }
