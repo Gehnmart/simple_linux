@@ -2,9 +2,9 @@ CC = gcc
 
 CFLAGS = -Wall -Werror -Wextra -std=c11
 
-all: main
+all: s21_grep
 
-main: s21_grep.o
+s21_grep: s21_grep.o
 	$(CC) -o s21_grep s21_grep.o
 
 s21_grep.o: s21_grep.c

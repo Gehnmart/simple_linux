@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <regex.h>
 
 #define True 1
 #define False 0
@@ -103,53 +104,35 @@ void parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
         exit(1);
     }
   }
-  if((!flags->f_flag && !flags->e_flag)){
-    argv += optind;
-    patterns->pattern[patterns->pattern_count] = malloc(sizeof(char) * 4098);
-    strcpy(patterns->pattern[patterns->pattern_count++], argv[0]);
-    argv+=1;
-    printf("%s", argv[0]);
-  }
 }
 
 void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter){
   char buf[4096];
 
-  bool str_in = False;
-  int str_in_counter = 0;
+  //bool str_in = False;
+  (void)flags;
+  (void)path;
+  //int str_in_counter = 0;
 
   while((fgets(buf, 4096, file)) != NULL){
-    for(int j = 0; j < patterns->pattern_count; j++){
+    char* ptrn;
+    int i = 0;
+    for(; (ptrn = patterns->pattern[i]) != NULL; i++){
+      regex_t reegex;
+  
+      int flag = 0;
+  
+      flag = regcomp( &reegex, ptrn, 0);
+      flag = regexec( &reegex, buf, 0, NULL, 0);
 
-      if(flags->i_flag){
-        str_in = (strcasestr(buf, patterns->pattern[j]) != NULL);
-      } else {
-        str_in = (strstr(buf, patterns->pattern[j]) != NULL);
-      }
-      if(flags->v_flag){
-        str_in = !str_in;
-      }
-
-      if(str_in){
-        if(flags->c_flag){
-          str_in_counter++;
-        }else{
-          if(file_counter>1){
-            printf("%s:%s\n", path, buf);
-          } else {
-            printf("%s\n", buf);
-          }
-        }
+      if(flags->v_flag) flag = !flag;
+      if(flag){
+        printf("%s", buf);
       }
     }
   }
-  if(flags->c_flag){
-    if(file_counter>1){
-      printf("%s:%d\n", path, str_in_counter);
-    } else {
-      printf("%d\n", str_in_counter);
-    }
-  }
+
+  if(file_counter > 1) printf("%c", '\n');
 }
 
 void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* patterns) {
@@ -157,10 +140,18 @@ void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* patterns) {
   FILE* file;
 
   int file_counter = 0;
+  int i = 0;
 
-  for (; (path = argv[file_counter]) != NULL; file_counter++);
+  if((!flags->f_flag && !flags->e_flag) && argv[0] != NULL){
+    patterns->pattern[patterns->pattern_count] = malloc(sizeof(char) * 4098);
+    strcpy(patterns->pattern[patterns->pattern_count++], argv[0]);
+    file_counter--;
+    i++;
+  }
 
-  for (int i = 0; (path = argv[i]) != NULL || i == 0; i++) {
+  for (int j = 0; (path = argv[j]) != NULL; file_counter++, j++);
+
+  for (; (path = argv[i]) != NULL || i == 0; i++) {
     if (path == NULL) {
       while (True) {
         char buf[4096];
