@@ -1,8 +1,8 @@
-#include <getopt.h>
-#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
+#include <regex.h>
 
 #define True 1
 #define False 0
@@ -40,7 +40,7 @@ void add_pattern(Tpatterns* patterns, char* buf);
 int free_patterns(Tpatterns* patterns);
 bool re_match(char* pattern, char* string, bool ignore_case);
 bool replace_enter(char* str, char c);
-void cnt_str(char* str, char* ptrn, bool ignore_case);
+bool cnt_str(char *str, char *ptrn, bool ignore_case);
 
 int main(int argc, char** argv) {
   Tflags flags = {0};
@@ -123,8 +123,7 @@ int parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
   return True;
 }
 
-void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path,
-                  int file_counter) {
+void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter) {
   char buf[4096];
 
   bool str_in = False;
@@ -135,14 +134,18 @@ void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path,
     char* ptrn;
 
     for (int i = 0; ((ptrn = patterns->pattern[i]) != NULL); i++) {
-      str_in = re_match(ptrn, buf, flags->i_flag);
+      if(flags->o_flag && !flags->l_flag) {
+        if(re_match(ptrn, buf, flags->i_flag) != 0)
+        if (file_counter > 1 && str_in) printf("%s:", path);
+          str_in = cnt_str(buf, ptrn, flags->i_flag);
+      } else {
+        str_in = re_match(ptrn, buf, flags->i_flag);
+      }
       if (str_in) break;
-      // cnt_str(buf, ptrn, flags->i_flag);
     }
-
     if (flags->v_flag) str_in = !str_in;
     if (str_in) {
-      if (!flags->c_flag && !flags->l_flag) {
+      if (!flags->c_flag && !flags->l_flag && (!flags->o_flag)) {
         if (file_counter > 1 && !flags->h_flag) printf("%s:", path);
         if (flags->n_flag) printf("%d:", str_counter);
         printf("%s", buf);
@@ -158,7 +161,7 @@ void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path,
     }
   }
   if (flags->c_flag) flags->n_flag = False;
-  if (flags->c_flag) {
+  if (flags->c_flag && (!flags->o_flag)) {
     if (file_counter > 1 && !flags->h_flag) printf("%s:", path);
     printf("%d\n", all_str_count);
   }
@@ -176,25 +179,28 @@ bool replace_enter(char* str, char c) {
   return False;
 }
 
-void cnt_str(char* str, char* ptrn, bool ignore_case) {
-  // int sl = (int)strlen(str);
-  // int pl = (int)strlen(ptrn);
+bool cnt_str(char *str, char *ptrn, bool ignore_case) {
+  regex_t regex;
+  regmatch_t match[4096];
 
-  char* strpt = str;
+  int cnt;
 
-  char ch;
-  char* buf = calloc(4096, sizeof(char));
-
-  for (int i = 0; (ch = strpt[0]) != '\0'; strpt++) {
-    if (!re_match(ptrn, buf, ignore_case)) {
-      buf[i++] = ch;
-    } else {
-      buf[i + 1] = '\0';
-      printf("%s", buf);
-      i = 0;
-      memset(buf, 0, 4096);
-    }
+  if(regcomp(&regex, ptrn, ignore_case ? REG_ICASE|REG_EXTENDED : REG_EXTENDED) != 0){
+    return 0;
   }
+
+  while((regexec(&regex, str, 4096, match, 0) == 0)){
+    int start = match[0].rm_so;
+    int end = match[0].rm_eo;
+    printf("%.*s\n", end-start, str+start);
+
+    str = str+end;
+    cnt++;
+  }
+
+  regfree(&regex);
+
+  return (cnt > 0);
 }
 
 bool re_match(char* pattern, char* string, bool ignore_case) {
