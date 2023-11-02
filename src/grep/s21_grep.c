@@ -32,12 +32,11 @@ typedef struct {
 } Tpatterns;
 
 int parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv);
-void add_pattern_from_file(char* path, Tpatterns* patterns);
 void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* pattern);
-void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path,
-                  int file_counter);
+void pattern_process(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter);
 void add_pattern(Tpatterns* patterns, char* buf);
 int free_patterns(Tpatterns* patterns);
+bool add_pattern_from_file(char* path, Tpatterns* patterns, Tflags* flags);
 bool re_match(char* pattern, char* string, bool ignore_case);
 bool replace_enter(char* str, char c);
 bool cnt_str(char *str, char *ptrn, bool ignore_case);
@@ -78,8 +77,15 @@ int free_patterns(Tpatterns* patterns) {
 }
 
 int parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
-  int res;
+  int res = 0;
+
   patterns->pattern = malloc(sizeof(char*) * 32);
+
+  for (int i = 0; i < argc; i++){
+    for (int j = 0; j < (int)strlen(argv[i]); j++){
+      if(argv[i][0] == '-' && argv[i][j] == 's') flags->s_flag = flags->any_flag = True;
+    }
+  }
 
   for (; (res = getopt_long(argc, argv, "e:ivclnhsf:o", NULL, NULL)) != -1;) {
     switch (res) {
@@ -89,7 +95,9 @@ int parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
         break;
       case 'f':
         flags->f_flag = flags->any_flag = True;
-        add_pattern_from_file(optarg, patterns);
+        if(!add_pattern_from_file(optarg, patterns, flags)){
+          return 0;
+        }
         break;
       case 'i':
         flags->i_flag = flags->any_flag = True;
@@ -123,7 +131,7 @@ int parce(Tflags* flags, Tpatterns* patterns, int argc, char** argv) {
   return True;
 }
 
-void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter) {
+void pattern_process(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, int file_counter) {
   char buf[4096];
 
   bool str_in = False;
@@ -137,7 +145,7 @@ void only_pattern(FILE* file, Tpatterns* patterns, Tflags* flags, char* path, in
       if(flags->o_flag && !flags->l_flag) {
         if(re_match(ptrn, buf, flags->i_flag) != 0)
         if (file_counter > 1 && str_in) printf("%s:", path);
-          str_in = cnt_str(buf, ptrn, flags->i_flag);
+        str_in = cnt_str(buf, ptrn, flags->i_flag);
       } else {
         str_in = re_match(ptrn, buf, flags->i_flag);
       }
@@ -252,32 +260,38 @@ void scan_files(Tflags* flags, char** argv, bool cooked, Tpatterns* patterns) {
         file = fopen(path, "r");
         if (file == NULL) {
           if (!flags->s_flag)
-            printf("grep: %s: No such file or directory\n", path);
+            fprintf(stderr, "grep: %s: No such file or directory\n", path);
         } else {
-          only_pattern(file, patterns, flags, path, file_counter);
+          pattern_process(file, patterns, flags, path, file_counter);
         }
       } else {
         file = fopen(path, "r");
         if (file == NULL) {
           if (!flags->s_flag)
-            printf("grep: %s: No such file or directory\n", path);
+            fprintf(stderr, "grep: %s: No such file or directory\n", path);
         } else {
-          only_pattern(file, patterns, flags, path, file_counter);
+          pattern_process(file, patterns, flags, path, file_counter);
         }
       }
     }
   }
 }
 
-void add_pattern_from_file(char* path, Tpatterns* patterns) {
+bool add_pattern_from_file(char* path, Tpatterns* patterns, Tflags* flags) {
   FILE* file;
 
+  bool error = True;
+
   if (path == NULL) {
-    printf("cat: %s: No such file or directory\n", path);
+    if(flags->s_flag)
+      fprintf(stderr, "grep: %s: No such file or directory\n", path);
+    error = False;
   } else {
     file = fopen(path, "r");
     if (file == NULL) {
-      printf("cat: %s: No such file or directory\n", path);
+      if(flags->s_flag)
+        fprintf(stderr, "grep: %s: No such file or directory\n", path);
+      error = False;
     } else {
       char buf[4096];
       for (int i = 0; (fgets(buf, 4096, file)) != NULL; i++) {
@@ -286,4 +300,5 @@ void add_pattern_from_file(char* path, Tpatterns* patterns) {
       }
     }
   }
+  return error;
 }
