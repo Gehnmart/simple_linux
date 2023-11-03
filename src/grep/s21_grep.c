@@ -3,24 +3,25 @@
 
 int main(int argc, char** argv) {
   option_t options = {0};
-  pattern_t patterns_storage;
-  patterns_storage.pattern_count = 0;
+  pattern_t pattern_storage;
+  pattern_storage.pattern_count = 0;
+  pattern_storage.pattern = malloc(sizeof(char*) * 32);
 
   int is_parce = 0;
-  is_parce = optionParce(&options, &patterns_storage, argc, argv);
+  is_parce = optionParce(&options, &pattern_storage, argc, argv);
 
   if (is_parce) {
     argv += optind;
 
     if (options.active == 1) {
-      runGrep(&options, argv, 1, &patterns_storage);
+      runGrep(&options, argv, 1, &pattern_storage);
     } else {
       argv += 1;
-      runGrep(&options, argv, 0, &patterns_storage);
+      runGrep(&options, argv, 0, &pattern_storage);
     }
   }
 
-  patternFree(&patterns_storage);
+  patternFree(&pattern_storage);
 
   return 0;
 }

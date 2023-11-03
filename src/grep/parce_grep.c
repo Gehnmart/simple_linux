@@ -7,14 +7,14 @@ int patternFree(pattern_t* pattern_storage) {
   for (int j = 0; j < pattern_storage->pattern_count; j++) {
     if (pattern_storage->pattern[j] != NULL) free(pattern_storage->pattern[j]);
   }
+  free(pattern_storage->pattern);
+
   return 1;
 }
 
 int optionParce(option_t* options, pattern_t* pattern_storage, int argc,
                 char** argv) {
   int res = 0;
-
-  pattern_storage->pattern = malloc(sizeof(char*) * 32);
 
   for (int i = 0; i < argc; i++) {
     for (int j = 0; j < (int)strlen(argv[i]); j++) {
