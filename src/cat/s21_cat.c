@@ -89,6 +89,7 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
       FILE* file = fopen(path, "r");
       if (file == NULL) {
         fprintf(stderr, "cat: %s: No such file or directory\n", path);
+        fclose(file);
       } else {
         if (cooked == 1) {
           char ch = EOF;
@@ -102,6 +103,7 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
         if(file != NULL){
           fclose(file);
         }
+        fclose(file);
       }
     } else break;
   }
@@ -111,9 +113,8 @@ void cat_cook(FILE* file, option_t* option_storage) {
   int ch, prev;
   int line = 0;
   int gooble = 0;
-  FILE* fp = file;
 
-  for (prev = '\n'; (ch = fgetc(fp)) != EOF; prev = ch) {
+  for (prev = '\n'; (ch = getc(file)) != EOF; prev = ch) {
     if (prev == '\n') {
       if (option_storage->opt_s) {
         if (ch == '\n') {
