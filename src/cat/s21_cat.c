@@ -2,10 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static struct option longopts[] = {{"number-nonblank", no_argument, NULL, 'b'},
-                                   {"number", no_argument, NULL, 'n'},
-                                   {"squeeze-blank", no_argument, NULL, 's'}};
-
 typedef struct {
   int opt_b;
   int opt_e;
@@ -24,6 +20,9 @@ int main(int argc, char** argv) {
   int idx = 0;
 
   option_t option_storage = {0};
+  struct option longopts[3] = {{"number-nonblank", no_argument, NULL, 'b'},
+                              {"number", no_argument, NULL, 'n'},
+                              {"squeeze-blank", no_argument, NULL, 's'}};
 
   int breakflag = 0;
 
