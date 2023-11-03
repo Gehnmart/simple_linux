@@ -1,8 +1,6 @@
 #ifndef IMPORT_GREP_H
 #define IMPORT_GREP_H
 
-#include <stdio.h>
-
 #define MAX_BUFF_SIZE 4096
 
 typedef struct {

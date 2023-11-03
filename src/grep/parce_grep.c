@@ -1,20 +1,20 @@
 #include "parce_grep.h"
 
-int patternFree(pattern_t* patterns) {
-  if (patterns == NULL){
+int patternFree(pattern_t* pattern_storage) {
+  if (pattern_storage == NULL) {
     return 0;
   }
-  for (int j = 0; j < patterns->pattern_count; j++) {
-    if(patterns->pattern[j] != NULL)
-      free(patterns->pattern[j]);
+  for (int j = 0; j < pattern_storage->pattern_count; j++) {
+    if (pattern_storage->pattern[j] != NULL) free(pattern_storage->pattern[j]);
   }
   return 1;
 }
 
-int optionParce(option_t* options, pattern_t* patterns, int argc, char** argv) {
+int optionParce(option_t* options, pattern_t* pattern_storage, int argc,
+                char** argv) {
   int res = 0;
 
-  patterns->pattern = malloc(sizeof(char*) * 32);
+  pattern_storage->pattern = malloc(sizeof(char*) * 32);
 
   for (int i = 0; i < argc; i++) {
     for (int j = 0; j < (int)strlen(argv[i]); j++) {
@@ -27,11 +27,11 @@ int optionParce(option_t* options, pattern_t* patterns, int argc, char** argv) {
     switch (res) {
       case 'e':
         options->opt_e = options->active = 1;
-        patternAdd(patterns, optarg);
+        patternAdd(pattern_storage, optarg);
         break;
       case 'f':
         options->opt_f = options->active = 1;
-        if (!patternImportFromFile(optarg, patterns)) {
+        if (!patternImportFromFile(optarg, pattern_storage)) {
           return 0;
         }
         break;
@@ -69,26 +69,23 @@ int optionParce(option_t* options, pattern_t* patterns, int argc, char** argv) {
   return 1;
 }
 
-void patternMatch(FILE* file, pattern_t* patterns, option_t* options,
+void patternMatch(FILE* file, pattern_t* pattern_storage, option_t* options,
                   char* path, int file_counter) {
-  
   char line[MAX_BUFF_SIZE] = {0};
   int pattern_matched = 0;
   int total_pattern_matched = 0;
   int line_number_counter = 1;
 
-  if(options->opt_v || options->opt_c || options->opt_l) options->opt_o = 0;
+  if (options->opt_v || options->opt_c || options->opt_l) options->opt_o = 0;
 
-  for (; (fgets(line, MAX_BUFF_SIZE, file)) != NULL;
-       line_number_counter++) {
+  for (; (fgets(line, MAX_BUFF_SIZE, file)) != NULL; line_number_counter++) {
     replaceEnterInString(line);
     char* ptrn = NULL;
 
-    for (int i = 0; ((ptrn = patterns->pattern[i]) != NULL); i++) {
+    for (int i = 0; ((ptrn = pattern_storage->pattern[i]) != NULL); i++) {
       if (options->opt_o) {
         if (patternIsFoundInString(ptrn, line, options) != 0)
-          if (file_counter > 1 && pattern_matched)
-            printf("%s:", path);
+          if (file_counter > 1 && pattern_matched) printf("%s:", path);
         pattern_matched = allPatternInString(line, ptrn, options);
       } else {
         pattern_matched = patternIsFoundInString(ptrn, line, options);
@@ -131,19 +128,21 @@ int replaceEnterInString(char* str) {
   return 0;
 }
 
-void patternAdd(pattern_t* patterns, char* buf) {
-  patterns->pattern[patterns->pattern_count] = malloc(sizeof(char) * MAX_BUFF_SIZE);
-  strcpy(patterns->pattern[patterns->pattern_count++], buf);
+void patternAdd(pattern_t* pattern_storage, char* buf) {
+  pattern_storage->pattern[pattern_storage->pattern_count] =
+      malloc(sizeof(char) * MAX_BUFF_SIZE);
+  strcpy(pattern_storage->pattern[pattern_storage->pattern_count++], buf);
 }
 
-void runGrep(option_t* options, char** argv, int cooked, pattern_t* patterns) {
+void runGrep(option_t* options, char** argv, int cooked,
+             pattern_t* pattern_storage) {
   char* path = NULL;
 
   int file_counter = 0;
   int i = 0;
 
   if ((!options->opt_f && !options->opt_e) && argv[0] != NULL) {
-    patternAdd(patterns, argv[0]);
+    patternAdd(pattern_storage, argv[0]);
     file_counter--;
     if (cooked) i++;
   }
@@ -158,14 +157,14 @@ void runGrep(option_t* options, char** argv, int cooked, pattern_t* patterns) {
         if (!options->opt_s)
           fprintf(stderr, "grep: %s: No such file or directory\n", path);
       } else {
-        patternMatch(file, patterns, options, path, file_counter);
+        patternMatch(file, pattern_storage, options, path, file_counter);
         fclose(file);
       }
     }
   }
 }
 
-int patternImportFromFile(char* path, pattern_t* patterns) {
+int patternImportFromFile(char* path, pattern_t* pattern_storage) {
   int error = 1;
 
   if (path == NULL) {
@@ -179,7 +178,7 @@ int patternImportFromFile(char* path, pattern_t* patterns) {
       char buf[MAX_BUFF_SIZE];
       for (int i = 0; (fgets(buf, MAX_BUFF_SIZE, file)) != NULL; i++) {
         if (buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
-        patternAdd(patterns, buf);
+        patternAdd(pattern_storage, buf);
       }
 
       fclose(file);

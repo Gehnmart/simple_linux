@@ -25,15 +25,15 @@ int allPatternInString(char* str, char* ptrn, option_t* options) {
   return (cnt > 0);
 }
 
-int patternIsFoundInString(char* pattern, char* string, option_t* options) {
+int patternIsFoundInString(char* ptrn, char* str, option_t* options) {
   regex_t reegex;
   int status;
 
-  if (regcomp(&reegex, pattern, options->opt_i ? REG_ICASE | REG_EXTENDED : REG_EXTENDED) !=
-      0)
+  if (regcomp(&reegex, ptrn,
+              options->opt_i ? REG_ICASE | REG_EXTENDED : REG_EXTENDED) != 0)
     return 0;
 
-  status = regexec(&reegex, string, 0, NULL, 0);
+  status = regexec(&reegex, str, 0, NULL, 0);
 
   regfree(&reegex);
 
