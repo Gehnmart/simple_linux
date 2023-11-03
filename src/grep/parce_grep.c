@@ -136,10 +136,8 @@ void patternAdd(pattern_t* patterns, char* buf) {
   strcpy(patterns->pattern[patterns->pattern_count++], buf);
 }
 
-void runGrep(option_t* options, char** argv, int cooked,
-              pattern_t* patterns) {
+void runGrep(option_t* options, char** argv, int cooked, pattern_t* patterns) {
   char* path = NULL;
-  FILE* file = NULL;
 
   int file_counter = 0;
   int i = 0;
@@ -154,45 +152,26 @@ void runGrep(option_t* options, char** argv, int cooked,
     ;
 
   for (; (path = argv[i]) != NULL || i == 0; i++) {
-    if (path == NULL) {
-      while (1) {
-        char buf[MAX_BUFF_SIZE];
-        scanf("%s", buf);
-      }
-    } else {
-      if (cooked) {
-        file = fopen(path, "r");
-        if (file == NULL) {
-          if (!options->opt_s)
-            fprintf(stderr, "grep: %s: No such file or directory\n", path);
-        } else {
-          patternMatch(file, patterns, options, path, file_counter);
-        }
+    if (path != NULL) {
+      FILE* file = fopen(path, "r");
+      if (file == NULL) {
+        if (!options->opt_s)
+          fprintf(stderr, "grep: %s: No such file or directory\n", path);
       } else {
-        file = fopen(path, "r");
-        if (file == NULL) {
-          if (!options->opt_s)
-            fprintf(stderr, "grep: %s: No such file or directory\n", path);
-        } else {
-          patternMatch(file, patterns, options, path, file_counter);
-        }
+        patternMatch(file, patterns, options, path, file_counter);
+        fclose(file);
       }
     }
   }
-  fclose(file);
-  file = NULL;
 }
 
 int patternImportFromFile(char* path, pattern_t* patterns) {
-  FILE* file;
-
   int error = 1;
 
   if (path == NULL) {
-    fprintf(stderr, "grep: %s: No such file or directory\n", path);
     error = 0;
   } else {
-    file = fopen(path, "r");
+    FILE* file = fopen(path, "r");
     if (file == NULL) {
       fprintf(stderr, "grep: %s: No such file or directory\n", path);
       error = 0;
@@ -202,9 +181,9 @@ int patternImportFromFile(char* path, pattern_t* patterns) {
         if (buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
         patternAdd(patterns, buf);
       }
+
+      fclose(file);
     }
   }
-  fclose(file);
-  file = NULL;
   return error;
 }

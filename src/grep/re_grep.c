@@ -4,7 +4,7 @@ int allPatternInString(char* str, char* ptrn, option_t* options) {
   regex_t regex;
   regmatch_t match[MAX_BUFF_SIZE];
 
-  int cnt;
+  int cnt = 0;
 
   if (regcomp(&regex, ptrn,
               options->opt_i ? REG_ICASE | REG_EXTENDED : REG_EXTENDED) != 0) {
