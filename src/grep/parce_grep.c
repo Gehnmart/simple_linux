@@ -60,9 +60,9 @@ int optionParce(option_t* options, pattern_t* pattern_storage, int argc,
         options->opt_o = options->active = 1;
         break;
       case '?':
-        printf("%s%s",
-               "usage: grep [-eivclnhsfo] [-A num] [-B num] [-C[num]]\n",
-               "\t[-e pattern] [-f file]\n");
+        fprintf(stderr, "%s%s",
+                "usage: grep [-eivclnhsfo] [-A num] [-B num] [-C[num]]\n",
+                "\t[-e pattern] [-f file]\n");
         return 0;
     }
   }

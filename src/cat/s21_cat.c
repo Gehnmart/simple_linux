@@ -21,12 +21,12 @@ int main(int argc, char** argv) {
 
   option_t option_storage = {0};
   struct option longopts[3] = {{"number-nonblank", no_argument, NULL, 'b'},
-                              {"number", no_argument, NULL, 'n'},
-                              {"squeeze-blank", no_argument, NULL, 's'}};
+                               {"number", no_argument, NULL, 'n'},
+                               {"squeeze-blank", no_argument, NULL, 's'}};
 
   int breakflag = 0;
 
-  while ((res = getopt_long(argc, argv, "beEnstTv", longopts, &idx)) != -1){
+  while ((res = getopt_long(argc, argv, "beEnstTv", longopts, &idx)) != -1) {
     switch (res) {
       case 'b':
         option_storage.opt_b = 1;
@@ -64,15 +64,15 @@ int main(int argc, char** argv) {
         breakflag = 1;
         break;
     }
-    if(breakflag == 1) break;
+    if (breakflag == 1) break;
   }
   argv += optind;
 
   if (error) {
     fprintf(stderr, "usage: cat [-benstv] [file ...]\n");
-  }
-  else if (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
-      option_storage.opt_s || option_storage.opt_t || option_storage.opt_v) {
+  } else if (option_storage.opt_b || option_storage.opt_e ||
+             option_storage.opt_n || option_storage.opt_s ||
+             option_storage.opt_t || option_storage.opt_v) {
     scan_files(&option_storage, argv, argc, 0);
   } else {
     scan_files(&option_storage, argv, argc, 1);
@@ -89,7 +89,6 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
       FILE* file = fopen(path, "r");
       if (file == NULL) {
         fprintf(stderr, "cat: %s: No such file or directory\n", path);
-        fclose(file);
       } else {
         if (cooked == 1) {
           char ch = EOF;
@@ -100,12 +99,10 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
           file = fopen(path, "r");
           cat_cook(file, option_storage);
         }
-        if(file != NULL){
-          fclose(file);
-        }
-        fclose(file);
       }
-    } else break;
+      fclose(file);
+    } else
+      break;
   }
 }
 

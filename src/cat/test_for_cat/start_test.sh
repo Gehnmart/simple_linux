@@ -37,7 +37,7 @@ done
 echo "_____ERROR__TEST______"
 
 cat -qwe lol >> diff_1.txt
-./s21_cat -qwe lol >> diff_2.txt
+../s21_cat -qwe lol >> diff_2.txt
 
 if cmp "-s" diff_1.txt diff_2.txt
 then 
