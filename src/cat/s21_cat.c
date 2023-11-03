@@ -67,10 +67,10 @@ int main(int argc, char** argv) {
   if (error) {
     fprintf(stderr, "usage: cat [-benstuv] [file ...]\n");
   }
-  else if (!error && (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
-      option_storage.opt_s || option_storage.opt_t || option_storage.opt_v)) {
+  else if (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
+      option_storage.opt_s || option_storage.opt_t || option_storage.opt_v) {
     scan_files(&option_storage, argv, 0);
-  } else if (!error) {
+  } else {
     scan_files(&option_storage, argv, 1);
   }
 
@@ -81,7 +81,7 @@ void scan_files(option_t* option_storage, char** argv, int cooked) {
   char* path;
   FILE* file;
 
-  for (int i = 0; (path = argv[i]) != NULL || i == 0; i++) {
+  for (int i = 0; ((path = argv[i]) != NULL || i == 0) && i < argc; i++) {
     if (path != NULL) {
       file = fopen(path, "r");
       if (file == NULL) {
