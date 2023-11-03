@@ -102,7 +102,6 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
         }
         if(file != NULL){
           fclose(file);
-          file = NULL;
         }
       }
     }
@@ -113,8 +112,9 @@ void cat_cook(FILE* file, option_t* option_storage) {
   int ch, prev;
   int line = 0;
   int gooble = 0;
+  FILE* fp = file;
 
-  for (prev = '\n'; (ch = fgetc(file)) != EOF; prev = ch) {
+  for (prev = '\n'; (ch = fgetc(fp)) != EOF; prev = ch) {
     if (prev == '\n') {
       if (option_storage->opt_s) {
         if (ch == '\n') {
@@ -143,5 +143,4 @@ void cat_cook(FILE* file, option_t* option_storage) {
     }
     putchar(ch);
   }
-  fclose(file);
 }
