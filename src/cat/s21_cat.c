@@ -143,4 +143,5 @@ void cat_cook(FILE* file, option_t* option_storage) {
     }
     putchar(ch);
   }
+  fclose(file);
 }
