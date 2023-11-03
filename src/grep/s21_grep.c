@@ -6,18 +6,18 @@ int main(int argc, char** argv) {
   pattern_t patterns_storage;
   patterns_storage.pattern_count = 0;
 
-  if (!optionParce(&options, &patterns_storage, argc, argv)) {
-    patternFree(&patterns_storage);
-    return 0;
-  }
+  int is_parce = 0;
+  is_parce = optionParce(&options, &patterns_storage, argc, argv);
 
-  argv += optind;
+  if (is_parce) {
+    argv += optind;
 
-  if (options.active) {
-    runGrep(&options, argv, 1, &patterns_storage);
-  } else {
-    argv += 1;
-    runGrep(&options, argv, 0, &patterns_storage);
+    if (options.active == 1) {
+      runGrep(&options, argv, 1, &patterns_storage);
+    } else {
+      argv += 1;
+      runGrep(&options, argv, 0, &patterns_storage);
+    }
   }
 
   patternFree(&patterns_storage);

@@ -161,6 +161,7 @@ void runGrep(option_t* options, char** argv, int cooked,
         fclose(file);
       }
     }
+    break;
   }
 }
 

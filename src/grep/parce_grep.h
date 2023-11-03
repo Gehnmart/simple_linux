@@ -9,8 +9,6 @@
 #include "import_grep.h"
 #include "re_grep.h"
 
-extern char* optarg;
-
 void patternMatch(FILE* file, pattern_t* pattern_storage, option_t* options,
                   char* path, int file_counter);
 void runGrep(option_t* options, char** argv, int cooked,
