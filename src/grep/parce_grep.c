@@ -3,14 +3,11 @@
 int patternFree(pattern_t* patterns) {
   if (patterns == NULL){
     return 0;
-  } else {
-    for (int j = 0; j < patterns->pattern_count; j++) {
-      if(patterns->pattern[j] != NULL)
-        free(patterns->pattern[j]);
-    }
-    free(patterns);
   }
-
+  for (int j = 0; j < patterns->pattern_count; j++) {
+    if(patterns->pattern[j] != NULL)
+      free(patterns->pattern[j]);
+  }
   return 1;
 }
 
