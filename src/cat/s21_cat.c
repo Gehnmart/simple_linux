@@ -104,7 +104,7 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
           fclose(file);
         }
       }
-    }
+    } else break;
   }
 }
 
