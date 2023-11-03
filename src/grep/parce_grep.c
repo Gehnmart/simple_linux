@@ -129,10 +129,8 @@ int replaceEnterInString(char* str) {
 }
 
 void patternAdd(pattern_t* pattern_storage, char* buf) {
-
   pattern_storage->pattern[pattern_storage->pattern_count] =
       malloc(sizeof(char) * MAX_BUFF_SIZE);
-  pattern_storage->pattern = realloc(pattern_storage->pattern, sizeof(char**) * pattern_storage->pattern_count+1);
   strcpy(pattern_storage->pattern[pattern_storage->pattern_count++], buf);
 }
 
