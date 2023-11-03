@@ -83,7 +83,7 @@ void scan_files(option_t* option_storage, char** argv, int cooked) {
   FILE* file;
 
   for (int i = 0; (path = argv[i]) != NULL || i == 0; i++) {
-    if (path 1= NULL) {
+    if (path != NULL) {
       file = fopen(path, "r");
       if (file == NULL) {
         fprintf(stderr, "cat: %s: No such file or directory\n", path);
