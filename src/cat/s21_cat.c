@@ -16,7 +16,7 @@ typedef struct {
 } option_t;
 
 void cat_cook(FILE* file, option_t* option_storage);
-void scan_files(option_t* option_storage, char** argv, int cooked);
+void scan_files(option_t* option_storage, char** argv, int argc, int cooked);
 
 int main(int argc, char** argv) {
   int res;
@@ -69,21 +69,20 @@ int main(int argc, char** argv) {
   }
   else if (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
       option_storage.opt_s || option_storage.opt_t || option_storage.opt_v) {
-    scan_files(&option_storage, argv, 0);
+    scan_files(&option_storage, argv, argc, 0);
   } else {
-    scan_files(&option_storage, argv, 1);
+    scan_files(&option_storage, argv, argc, 1);
   }
 
   return 0;
 }
 
-void scan_files(option_t* option_storage, char** argv, int cooked) {
+void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
   char* path;
-  FILE* file;
 
   for (int i = 0; ((path = argv[i]) != NULL || i == 0) && i < argc; i++) {
     if (path != NULL) {
-      file = fopen(path, "r");
+      FILE* file = fopen(path, "r");
       if (file == NULL) {
         fprintf(stderr, "cat: %s: No such file or directory\n", path);
       } else {
@@ -96,7 +95,9 @@ void scan_files(option_t* option_storage, char** argv, int cooked) {
           file = fopen(path, "r");
           cat_cook(file, option_storage);
         }
-        fclose(file);
+        if(file != NULL){
+          fclose(file);
+        }
       }
     }
   }
