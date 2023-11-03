@@ -161,8 +161,9 @@ void runGrep(option_t* options, char** argv, int cooked,
         patternMatch(file, pattern_storage, options, path, file_counter);
         fclose(file);
       }
+    }else{
+      break;
     }
-    break;
   }
 }
 
