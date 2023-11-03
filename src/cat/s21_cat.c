@@ -66,12 +66,11 @@ int main(int argc, char** argv) {
 
   if (error) {
     fprintf(stderr, "usage: cat [-benstuv] [file ...]\n");
-    exit(1);
   }
-  if (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
-      option_storage.opt_s || option_storage.opt_t || option_storage.opt_v) {
+  else if (!error && (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
+      option_storage.opt_s || option_storage.opt_t || option_storage.opt_v)) {
     scan_files(&option_storage, argv, 0);
-  } else {
+  } else if (!error) {
     scan_files(&option_storage, argv, 1);
   }
 
