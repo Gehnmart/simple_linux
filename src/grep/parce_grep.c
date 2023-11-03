@@ -85,7 +85,7 @@ void patternMatch(FILE* file, pattern_t* patterns, option_t* options,
   for (; (fgets(line, MAX_BUFF_SIZE, file)) != NULL;
        line_number_counter++) {
     replaceEnterInString(line);
-    char* ptrn;
+    char* ptrn = NULL;
 
     for (int i = 0; ((ptrn = patterns->pattern[i]) != NULL); i++) {
       if (options->opt_o) {
