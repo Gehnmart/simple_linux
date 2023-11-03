@@ -25,7 +25,9 @@ int main(int argc, char** argv) {
 
   option_t option_storage = {0};
 
-  while ((res = getopt_long(argc, argv, "beEnstTv", longopts, &idx)) != -1)
+  int breakflag = 0;
+
+  while ((res = getopt_long(argc, argv, "beEnstTv", longopts, &idx)) != -1){
     switch (res) {
       case 'b':
         option_storage.opt_b = 1;
@@ -55,17 +57,20 @@ int main(int argc, char** argv) {
         option_storage.opt_v = 1;
         break;
       case '?':
-        fprintf(stderr, "usage: cat [-benstuv] [file ...]\n");
-        exit(1);
+        error = 1;
+        breakflag = 1;
         break;
       default:
         error = 1;
+        breakflag = 1;
         break;
     }
+    if(breakflag == 1) break;
+  }
   argv += optind;
 
   if (error) {
-    fprintf(stderr, "usage: cat [-benstuv] [file ...]\n");
+    fprintf(stderr, "usage: cat [-benstv] [file ...]\n");
   }
   else if (option_storage.opt_b || option_storage.opt_e || option_storage.opt_n ||
       option_storage.opt_s || option_storage.opt_t || option_storage.opt_v) {
@@ -97,6 +102,7 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
         }
         if(file != NULL){
           fclose(file);
+          file = NULL;
         }
       }
     }
