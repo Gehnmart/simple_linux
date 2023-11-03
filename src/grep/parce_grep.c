@@ -129,19 +129,22 @@ int replaceEnterInString(char* str) {
 }
 
 void patternAdd(pattern_t* pattern_storage, char* buf) {
+
   pattern_storage->pattern[pattern_storage->pattern_count] =
       malloc(sizeof(char) * MAX_BUFF_SIZE);
+  pattern_storage->pattern = realloc(pattern_storage->pattern, sizeof(char**) * pattern_storage->pattern_count+1);
   strcpy(pattern_storage->pattern[pattern_storage->pattern_count++], buf);
 }
 
 void runGrep(option_t* options, char** argv, int cooked,
              pattern_t* pattern_storage) {
   char* path = NULL;
+  FILE* file = NULL;
 
   int file_counter = 0;
   int i = 0;
 
-  if ((!options->opt_f && !options->opt_e) && argv[0] != NULL) {
+  if ((options->opt_f == 0 && options->opt_e == 0) && argv[0] != NULL) {
     patternAdd(pattern_storage, argv[0]);
     file_counter--;
     if (cooked) i++;
@@ -152,9 +155,9 @@ void runGrep(option_t* options, char** argv, int cooked,
 
   for (; (path = argv[i]) != NULL || i == 0; i++) {
     if (path != NULL) {
-      FILE* file = fopen(path, "r");
+      file = fopen(path, "r");
       if (file == NULL) {
-        if (!options->opt_s)
+        if (options->opt_s == 0)
           fprintf(stderr, "grep: %s: No such file or directory\n", path);
       } else {
         patternMatch(file, pattern_storage, options, path, file_counter);
