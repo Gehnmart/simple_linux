@@ -71,24 +71,31 @@ int optionParce(option_t* options, pattern_t* pattern_storage, int argc,
 
 void patternMatch(FILE* file, pattern_t* pattern_storage, option_t* options,
                   char* path, int file_counter) {
-  char line[MAX_BUFF_SIZE] = {0};
+  char* line = malloc(MAX_BUFF_SIZE);
+  char* line_ptr = line;
+
   int pattern_matched = 0;
   int total_pattern_matched = 0;
   int line_number_counter = 1;
 
   if (options->opt_v || options->opt_c || options->opt_l) options->opt_o = 0;
-
-  for (; (fgets(line, MAX_BUFF_SIZE, file)) != NULL; line_number_counter++) {
-    replaceEnterInString(line);
+  for (; (fgets(line_ptr, MAX_BUFF_SIZE, file)) != NULL;
+       line_number_counter++) {
+    replaceEnterInString(line_ptr);
     char* ptrn = NULL;
 
+    int flag = 0;
+
     for (int i = 0; ((ptrn = pattern_storage->pattern[i]) != NULL); i++) {
+      pattern_matched = patternIsFoundInString(ptrn, line_ptr, options);
       if (options->opt_o) {
-        if (patternIsFoundInString(ptrn, line, options) != 0)
-          if (file_counter > 1 && pattern_matched) printf("%s:", path);
-        pattern_matched = allPatternInString(line, ptrn, options);
-      } else {
-        pattern_matched = patternIsFoundInString(ptrn, line, options);
+        if (file_counter > 1 && pattern_matched && !options->opt_h && !flag)
+          printf("%s:", path);
+        if (options->opt_n && pattern_matched && !flag)
+          printf("%d:", line_number_counter);
+        line_ptr += allPatternInString(line_ptr, ptrn, options);
+        if (pattern_matched) flag++;
+        continue;
       }
       if (pattern_matched) break;
     }
@@ -97,7 +104,7 @@ void patternMatch(FILE* file, pattern_t* pattern_storage, option_t* options,
       if (!options->opt_c && !options->opt_l && (!options->opt_o)) {
         if (file_counter > 1 && !options->opt_h) printf("%s:", path);
         if (options->opt_n) printf("%d:", line_number_counter);
-        printf("%s", line);
+        printf("%s", line_ptr);
         putchar('\n');
       } else {
         total_pattern_matched++;
@@ -117,6 +124,7 @@ void patternMatch(FILE* file, pattern_t* pattern_storage, option_t* options,
   if (options->opt_l && total_pattern_matched) {
     printf("%s\n", path);
   }
+  if (line != NULL) free(line);
 }
 
 int replaceEnterInString(char* str) {
@@ -161,7 +169,7 @@ void runGrep(option_t* options, char** argv, int cooked,
         patternMatch(file, pattern_storage, options, path, file_counter);
         fclose(file);
       }
-    }else{
+    } else {
       break;
     }
   }
