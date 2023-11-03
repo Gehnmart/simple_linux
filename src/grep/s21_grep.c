@@ -8,6 +8,7 @@
 int main(int argc, char** argv) {
   option_t options = {0};
   pattern_t patterns;
+  patterns.pattern_count = 0;
 
   if (!optionParce(&options, &patterns, argc, argv)) {
     patternFree(&patterns);

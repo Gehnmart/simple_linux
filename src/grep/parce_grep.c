@@ -1,13 +1,15 @@
 #include "parce_grep.h"
 
 int patternFree(pattern_t* patterns) {
-  if (patterns == NULL) {
+  if (patterns == NULL){
     return 0;
+  } else {
+    for (int j = 0; j < patterns->pattern_count; j++) {
+      if(patterns->pattern[j] != NULL)
+        free(patterns->pattern[j]);
+    }
+    free(patterns);
   }
-  for (int j = 0; j < patterns->pattern_count; j++) {
-    free(patterns->pattern[j]);
-  }
-  free(patterns->pattern);
 
   return 1;
 }
@@ -180,6 +182,8 @@ void runGrep(option_t* options, char** argv, int cooked,
       }
     }
   }
+  fclose(file);
+  file = NULL;
 }
 
 int patternImportFromFile(char* path, pattern_t* patterns) {
@@ -203,5 +207,7 @@ int patternImportFromFile(char* path, pattern_t* patterns) {
       }
     }
   }
+  fclose(file);
+  file = NULL;
   return error;
 }
