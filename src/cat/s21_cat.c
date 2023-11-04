@@ -99,7 +99,7 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
           cat_cook(file, option_storage);
         }
       }
-      fclose(file);
+      if (file != NULL) fclose(file);
     } else
       break;
   }
