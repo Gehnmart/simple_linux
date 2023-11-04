@@ -134,7 +134,7 @@ void cat_cook(FILE* file, option_t* option_storage) {
       if (ch > 127 && ch < 160) printf("M-^");
       if ((ch == 127 || (ch >= 0 && ch <= 31)) && (ch != '\n' && ch != '\t'))
         printf("^");
-      if ((ch < 32 || (ch > 126 && ch < 160)) && ch != '\n' && ch != '\t')
+      if ((ch < 32 || (ch > 126 && ch < 160)) && (ch != '\n' && ch != '\t'))
         ch = ch > 126 ? ch - 64 : ch + 64;
     }
     putchar(ch);
