@@ -96,7 +96,6 @@ void scan_files(option_t* option_storage, char** argv, int argc, int cooked) {
             putchar(ch);
           }
         } else if (cooked == 0) {
-          file = fopen(path, "r");
           cat_cook(file, option_storage);
         }
       }
